@@ -14,18 +14,44 @@ interface Props {
   user: { id: number; name: string; phone: string };
 }
 
+function playNotification() {
+  try {
+    const ctx = new AudioContext();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.frequency.setValueAtTime(880, ctx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(440, ctx.currentTime + 0.15);
+    gain.gain.setValueAtTime(0.3, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.3);
+    osc.start(ctx.currentTime);
+    osc.stop(ctx.currentTime + 0.3);
+  } catch (_e) {
+    // AudioContext not supported
+  }
+}
+
 export default function GlobalChat({ user }: Props) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [text, setText] = useState("");
   const [sending, setSending] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
   const lastIdRef = useRef(0);
+  const initialLoadRef = useRef(true);
 
   const loadMessages = async () => {
     const msgs = await apiGetMessages(lastIdRef.current);
     if (msgs.length > 0) {
       lastIdRef.current = msgs[msgs.length - 1].id;
+      if (!initialLoadRef.current) {
+        const hasOthers = msgs.some(m => m.phone !== user.phone);
+        if (hasOthers) playNotification();
+      }
+      initialLoadRef.current = false;
       setMessages(prev => [...prev, ...msgs]);
+    } else {
+      initialLoadRef.current = false;
     }
   };
 
