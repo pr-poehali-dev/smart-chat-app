@@ -1,0 +1,19 @@
+{
+  "tests": [
+    {
+      "name": "OPTIONS preflight",
+      "method": "OPTIONS",
+      "path": "/",
+      "expectedStatus": 200
+    },
+    {
+      "name": "Register new user",
+      "method": "POST",
+      "path": "/",
+      "body": {"phone": "+70000000001", "name": "Тест Юзер"},
+      "expectedStatus": 200,
+      "expectedBody": {"phone": "+70000000001"},
+      "bodyMatcher": "partial"
+    }
+  ]
+}
